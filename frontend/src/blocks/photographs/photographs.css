@@ -1,0 +1,14 @@
+.photographs {
+  max-width: 880px;
+  margin: 0 auto 67px auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 282px);
+  justify-content: center;
+  gap: 21px 17px;
+}
+
+@media screen and (max-width: 410px) {
+  .photographs {
+    row-gap: 20px;
+  }
+}

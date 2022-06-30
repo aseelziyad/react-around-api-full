@@ -1,30 +1,31 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
-const validator = require("Validator");
+const validator = require("validator");
 const { UnauthorizedError } = require("../errors/errorHandler");
 
 const defaultUser = {
   name: "BoJack Horseman",
   about: "Horse",
-  avatar: "https://uploads-ssl.webflow.com/5fa452663d18a6699f11aa07/61f015590e1c6fadfd5f5906_Podcast%20Main%20Images.jpg"
+  avatar:
+    "https://uploads-ssl.webflow.com/5fa452663d18a6699f11aa07/61f015590e1c6fadfd5f5906_Podcast%20Main%20Images.jpg",
 };
 
 const userSchema = new mongoose.Schema({
   email: {
-     type: String,
+    type: String,
     required: true,
     unique: true,
     validate: {
       validator(v) {
         return validator.isEmail(v);
-      }
-    }
+      },
+    },
   },
-   password: {
-      type: String,
+  password: {
+    type: String,
     required: true,
-     unique: true,
-     select: false,
+    unique: true,
+    select: false,
     minlength: 6,
   },
   name: {
@@ -32,6 +33,7 @@ const userSchema = new mongoose.Schema({
     minlength: 2,
     maxlength: 30,
     required: false,
+    default: defaultUser.name,
   },
   about: {
     type: String,
@@ -46,17 +48,18 @@ const userSchema = new mongoose.Schema({
     //     return /[(http(s)?)://(www.)?a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)/gim.test(v);
     //   },
     // },
-      validate: {
+    validate: {
       validator(v) {
         return validator.isURL(v);
-      }
+      },
     },
     required: true,
   },
 });
 
+// eslint-disable-next-line func-names
 userSchema.statics.findUserByCredentails = function (email, password) {
-  //find the user by email
+  //  find the user by email
   return this.findOne({ email })
     .select("+pasword")
     .then((user) => {
@@ -64,14 +67,13 @@ userSchema.statics.findUserByCredentails = function (email, password) {
         throw new UnauthorizedError();
       }
       // compare hashes
-      return bcrypt.compare(password, user.password)
-        .then((matched) => {
-          if (!matched) {
-            throw new UnauthorizedError();
-          }
-          return user;
-      })
-  })
-}
+      return bcrypt.compare(password, user.password).then((matched) => {
+        if (!matched) {
+          throw new UnauthorizedError();
+        }
+        return user;
+      });
+    });
+};
 
 module.exports = mongoose.model("user", userSchema);

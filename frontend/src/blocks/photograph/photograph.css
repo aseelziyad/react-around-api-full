@@ -1,0 +1,8 @@
+.photograph {
+  max-width: 282px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 0;
+  position: relative;
+}

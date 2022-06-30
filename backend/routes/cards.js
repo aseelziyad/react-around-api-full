@@ -1,5 +1,7 @@
 const express = require("express");
 const { celebrate, Joi } = require("celebrate");
+const validator = require("validator");
+
 const router = express.Router();
 const {
   getCards,
@@ -26,16 +28,17 @@ router.post(
       about: Joi.string().required().custom(validateURL),
     }),
   }),
-  createCard
+  createCard,
 );
 
-router.delete("/:cardId",
+router.delete(
+  "/:cardId",
   celebrate({
     params: Joi.object().keys({
-    id: Joi.string().required(),
-  })
-}),
-  deleteCard
+      id: Joi.string().required(),
+    }),
+  }),
+  deleteCard,
 );
 
 router.put(
@@ -45,7 +48,7 @@ router.put(
       id: Joi.string().required(),
     }),
   }),
-  likeCard
+  likeCard,
 );
 
 router.delete(
@@ -55,7 +58,7 @@ router.delete(
       id: Joi.string().required(),
     }),
   }),
-  dislikeCard
+  dislikeCard,
 );
 
 module.exports = router;

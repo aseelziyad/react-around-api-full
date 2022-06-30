@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 class BadRequestError extends Error {
   constructor(message) {
     super(message);
@@ -34,9 +35,9 @@ class InternalServerError extends Error {
 }
 
 module.exports = {
-    BadRequestError,
-    UnauthorizedError,
-    ForbiddenError,
-    NotFoundError,
-    InternalServerError,
-}
+  BadRequestError,
+  UnauthorizedError,
+  ForbiddenError,
+  NotFoundError,
+  InternalServerError,
+};

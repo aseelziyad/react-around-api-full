@@ -1,0 +1,9 @@
+.popup__error {
+  visibility: hidden;
+  display: none;
+  max-width: 164px;
+  font-size: 12px;
+  line-height: 14.52px;
+  color: #ff0000;
+  margin-top: 5px;
+}
