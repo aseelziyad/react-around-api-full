@@ -27,7 +27,6 @@ const validateURL = (value, helpers) => {
 router.get("/", auth, getUsers);
 router.get("/me", auth, getCurrentUser);
 router.get("/:userId", auth, getUserById);
-// router.post("/", createUser); no longer needed
 router.patch("/me", auth,
   celebrate({
     body: Joi.object().keys({

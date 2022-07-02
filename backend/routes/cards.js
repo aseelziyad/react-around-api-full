@@ -1,5 +1,3 @@
-/* eslint-disable function-call-argument-newline */
-/* eslint-disable function-paren-newline */
 const express = require("express");
 const { celebrate, Joi } = require("celebrate");
 const validator = require("validator");
@@ -24,7 +22,9 @@ const validateURL = (value, helpers) => {
 router.get("/", auth, getCards);
 
 router.post(
-  "/", auth, celebrate({
+  "/",
+  auth,
+  celebrate({
     body: Joi.object().keys({
       name: Joi.string().required().min(2).max(30),
       link: Joi.string().required().custom(validateURL),
@@ -34,7 +34,9 @@ router.post(
 );
 
 router.delete(
-  "/:cardId", celebrate({
+  "/:cardId",
+  auth,
+  celebrate({
     params: Joi.object().keys({
       cardId: Joi.string().hex(),
     }),
@@ -44,6 +46,7 @@ router.delete(
 
 router.put(
   "/:cardId/likes",
+  auth,
   celebrate({
     params: Joi.object().keys({
       cardId: Joi.string().required(),
@@ -54,6 +57,7 @@ router.put(
 
 router.delete(
   "/:cardId/likes",
+  auth,
   celebrate({
     params: Joi.object().keys({
       cardId: Joi.string().required(),

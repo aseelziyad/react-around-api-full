@@ -1,5 +1,3 @@
-/* eslint-disable new-cap */
-// require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const { errors, celebrate, Joi } = require("celebrate");
@@ -9,38 +7,34 @@ const cardsRouter = require("./routes/cards");
 const { requestLogger, errorLogger } = require("./middleware/logger");
 const { login, createUser } = require("./controllers/users");
 const auth = require("./middleware/auth");
-const errorHandler = require("./errors/errorHandler");
 const centralErrorHandler = require("./errors/centralErrorHandler");
 
 const { PORT = 3000 } = process.env;
-const app = express();
 
 mongoose.connect("mongodb://localhost:27017/aroundb");
-
-app.use(requestLogger);
+const app = express();
 app.use(express.json());
-
 app.use(cors());
-app.options("*", cors()); //  enable requests for all routes
-
+app.options("*", cors());
+app.use(errors());
+app.use(requestLogger);
 app.get("/crash-test", () => {
   setTimeout(() => {
     throw new Error("Server will crash now");
   }, 0);
 });
 
-app.post(
-  "/signin",
-  celebrate({
-    body: Joi.object().keys({
-      email: Joi.string().required().min(2).max(30),
-      password: Joi.string().required().min(6),
-    }),
+app.use("/users", auth, usersRouter);
+app.use("/cards", auth, cardsRouter);
+app.post("/signin", auth, celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().min(2).max(30),
+    password: Joi.string().required().min(6),
   }),
-  login,
-);
+}), login);
 app.post(
   "/signup",
+  auth,
   celebrate({
     body: Joi.object().keys({
       email: Joi.string().required().min(2).max(30),
@@ -52,13 +46,10 @@ app.post(
   }),
   createUser,
 );
-app.use(errors());
-app.use("/users", usersRouter);
-app.use("/cards", cardsRouter);
-app.get("*", () => {
-  throw new errorHandler();
+app.use(errorLogger);
+app.get("*", (req, res) => {
+  res.status(404).send({ message: "Requested resource not found" });
 });
-
 app.use((err, req, res, next) => {
   centralErrorHandler(err, res);
 });

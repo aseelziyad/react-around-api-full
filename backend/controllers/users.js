@@ -1,7 +1,3 @@
-/* eslint-disable spaced-comment */
-/* eslint-disable implicit-arrow-linebreak */
-/* eslint-disable function-paren-newline */
-/* eslint-disable object-curly-newline */
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
@@ -42,12 +38,10 @@ const getUserById = (req, res) => {
       res.status(200).send({ data: userId });
     })
     .catch((err) => {
-      if (err.name === "CastError") {
-        res.status(400).send({ message: "Your request  resulted an error" });
-      }
-      console.log(err);
-      if (err.name === "DocumentNotFoundError") {
-        res.status(404).send({ message: "User not found" });
+      if (err.statusCode === 400) {
+        res.send({ message: "Your request  resulted an error" });
+      } else if (err.name === 404) {
+        res.send({ message: "User not found" });
       } else {
         res.status(500).send({ message: "Internal Server Error" });
       }
@@ -55,25 +49,25 @@ const getUserById = (req, res) => {
 };
 
 const createUser = (req, res, next) => {
-  const { email, password, name, about, avatar } = req.body;
+  const {
+    email, password, name, about, avatar,
+  } = req.body;
 
   bcrypt
     .hash(password, 10)
-    .then((hash) =>
-      User.create({
-        email,
-        password: hash, // adding the hash to the database
-        name,
-        about,
-        avatar,
-      }),
-    )
+    .then((hash) => User.create({
+      email,
+      password: hash, // adding the hash to the database
+      name,
+      about,
+      avatar,
+    }))
     .then((user) => {
       res.status(200).send({ _id: user._id });
     })
     .catch((err) => {
-      if (err.name === "ValidationError") {
-        res.status(400).send({ message: err.errors });
+      if (err.statusCode === 400) {
+        res.send({ message: "Your request  resulted an error" });
       } else {
         res.status(500).send({ message: "Internal Server Error" });
       }
@@ -82,22 +76,20 @@ const createUser = (req, res, next) => {
 
 const login = (req, res) => {
   const { email, password } = req.body;
-  //authentication successful! user is in the user variable
+  // authentication successful! user is in the user variable
   User.findByCredentails(email, password)
-    .then((user) =>
-      res.json({
-        //creating the token
-        token: jwt.sign(
-          {
-            _id: user._id,
-          },
-          NODE_ENV === "production" ? JWT_SECRET : "dev-secret",
-          {
-            expiresIn: "7d",
-          },
-        ),
-      }),
-    )
+    .then((user) => res.json({
+      // creating the token
+      token: jwt.sign(
+        {
+          _id: user._id,
+        },
+        NODE_ENV === "production" ? JWT_SECRET : "dev-secret",
+        {
+          expiresIn: "7d",
+        },
+      ),
+    }))
     .catch((err) => {
       console.log(err);
       res.status(500).send({ message: "Internal Server Error" });
@@ -145,8 +137,8 @@ const updateAvatar = (req, res) => {
       }
     })
     .catch((err) => {
-      if (err.name === "CastError") {
-        res.status(400).send({ message: "Your request  resulted an error" });
+      if (err.statusCode === 400) {
+        res.send({ message: "Your request  resulted an error" });
       } else {
         res.status(500).send({ message: "Internal Server Error" });
       }

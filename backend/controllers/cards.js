@@ -1,6 +1,3 @@
-/* eslint-disable no-shadow */
-/* eslint-disable no-undef */
-/* eslint-disable semi */
 const Card = require("../models/card");
 const { ForbiddenError } = require("../errors/errorHandler");
 const { NotFoundError } = require("../errors/errorHandler");
@@ -25,7 +22,7 @@ const createCard = (req, res) => {
       res.status(200).send({ card });
     })
     .catch((err) => {
-      if (err.name === "ValidationError") {
+      if (err.statusCode === 400) {
         res.status(400).send({ message: "Your request resulted an error" });
       } else {
         console.log(err);
@@ -43,67 +40,29 @@ const deleteCard = (req, res) => {
       if (!card.owner.equals(req.user._id)) {
         throw new ForbiddenError();
       }
-      return Card.findOneAnDelete(req.params.cardId);
+      return Card.findOneAndDelete(req.params.cardId);
     })
     .then((deleteCard) => {
       res.send({ data: deleteCard });
     })
     .catch((err) => {
-      console.log(err);
-      if (err.name === "CastError") {
-        res.status(400).send({ message: "Your request  resulted an error" });
-      }
-      if (err.name === "DocumentNotFoundError") {
-        res.status(404).send({ message: "Card not found" });
+      if (err.statusCode === 400) {
+        res.send({ message: "Your request  resulted an error" });
+      } else if (err.statusCode === 404) {
+        res.send({ message: "Card not found" });
+      } else if (err.statusCode === 403) {
+        res.send({ message: "Unauthriozed Error" });
       } else {
         console.log(err);
         res.status(500).send({ message: "Internal Server Error" });
       }
     });
-
-  // Card.findById(cardId)
-  //   .orFail()
-  //   .then((card) => {
-  //     if (!card.owner.equals(req.user._id)) {
-  //       throw new ForbiddenError();
-  //     }
-  //     return Card.findByIdAndRemove(cardId).orFail();
-  //   })
-  //   .then((card) => {
-  //     res.send({ data: card });
-  //   })
-  //   .catch((err) => {
-  //     console.log(err);
-  //     if (err.name === "CastError") {
-  //       res.status(400).send({ message: "Your request  resulted an error" });
-  //     }
-  //     if (err.name === "DocumentNotFoundError") {
-  //       res.status(404).send({ message: "Card not found" });
-  //     } else {
-  //       res.status(500).send({ message: "Internal Server Error" });
-  //     }
-  //   });
-  // Card.findByIdAndRemove(req.params.cardId)
-  //   .orFail()
-  //   .then((card) => {
-  //     res.status(200).send({ data: card });
-  //   })
-  //   .catch((err) => {
-  //     if (err.name === "CastError") {
-  //       res.status(400).send({ message: "NotValid Data" });
-  //     }
-  //     if (err.name === "DocumentNotFoundError") {
-  //       res.status(404).send({ message: "User not found" });
-  //     } else {
-  //       res.status(500).send({ message: "An error has occurred on the server" });
-  //     }
-  //   });
 };
 
 const likeCard = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $addToSet: { likes: req.user._id } }, // add _id to the array if it's not there yet
+    { $addToSet: { likes: req.user._id } },
     { new: true },
   )
     .orFail()
@@ -111,12 +70,14 @@ const likeCard = (req, res) => {
       res.status(200).send({ data: card });
     })
     .catch((err) => {
-      if (err.name === "CastError") {
-        res.status(400).send({ message: "Your request  resulted an error" });
-      }
-      if (err.name === "DocumentNotFoundError") {
-        res.status(404).send({ message: "Card not found" });
+      if (err.statusCode === 400) {
+        res.send({ message: "Your request  resulted an error" });
+      } else if (err.statusCode === 404) {
+        res.send({ message: "Card not found" });
+      } else if (err.statusCode === 403) {
+        res.send({ message: "Unauthriozed Error" });
       } else {
+        console.log(err);
         res.status(500).send({ message: "Internal Server Error" });
       }
     });
@@ -133,12 +94,14 @@ const dislikeCard = (req, res) => {
       res.status(200).send({ data: card });
     })
     .catch((err) => {
-      if (err.name === "CastError") {
-        res.status(400).send({ message: "Your request  resulted an error" });
-      }
-      if (err.name === "DocumentNotFoundError") {
-        res.status(404).send({ message: "Card not found" });
+      if (err.statusCode === 400) {
+        res.send({ message: "Your request  resulted an error" });
+      } else if (err.statusCode === 404) {
+        res.send({ message: "Card not found" });
+      } else if (err.statusCode === 403) {
+        res.send({ message: "Unauthriozed Error" });
       } else {
+        console.log(err);
         res.status(500).send({ message: "Internal Server Error" });
       }
     });

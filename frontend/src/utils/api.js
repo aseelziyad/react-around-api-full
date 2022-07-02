@@ -18,7 +18,7 @@ class Api extends React.Component {
     }).then(this._getResponseData);
   }
 
-  setUserInfo({ name, about}) {
+  setUserInfo({ name, about }) {
     return fetch(`${this._baseUrl}/users/me `, {
       headers: this._headers,
       method: "PATCH",
@@ -74,12 +74,13 @@ class Api extends React.Component {
     return res.json();
   }
 }
-
+// const BASE_URL = "https://around.nomoreparties.co/v1/group-12"
 const api = new Api({
-  baseUrl: "https://around.nomoreparties.co/v1/group-12",
+  baseUrl: "http://127.0.0.1:3000",
   headers: {
-    authorization: "6edae45a-96e2-41b1-a788-2616fd5c518a",
+    // authorization: "6edae45a-96e2-41b1-a788-2616fd5c518a",
     "Content-Type": "application/json",
   },
 });
+
 export default api;
