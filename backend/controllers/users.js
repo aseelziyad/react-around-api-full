@@ -1,20 +1,28 @@
-const User = require("../models/user");
+/* eslint-disable spaced-comment */
+/* eslint-disable implicit-arrow-linebreak */
+/* eslint-disable function-paren-newline */
+/* eslint-disable object-curly-newline */
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const User = require("../models/user");
 const { UnauthorizedError } = require("../errors/errorHandler");
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
-const getCurrentUser = (req, res, next) => {
+const getCurrentUser = (req, res) => {
+  console.log("here");
   User.findById(req.user._id)
     .then((user) => {
+      console.log(user);
       if (!user) {
         throw new UnauthorizedError();
       }
       res.send(user);
     })
-    .catch(next);
-}
+    .catch(() => {
+      res.status(500).send({ message: "Internal Server Error" });
+    });
+};
 
 const getUsers = (req, res) => {
   User.find({})
@@ -27,7 +35,8 @@ const getUsers = (req, res) => {
 };
 
 const getUserById = (req, res) => {
-  User.findById(req.params.id)
+  console.log(req.params);
+  User.findById(req.params.userId)
     .orFail()
     .then((userId) => {
       res.status(200).send({ data: userId });
@@ -36,6 +45,7 @@ const getUserById = (req, res) => {
       if (err.name === "CastError") {
         res.status(400).send({ message: "Your request  resulted an error" });
       }
+      console.log(err);
       if (err.name === "DocumentNotFoundError") {
         res.status(404).send({ message: "User not found" });
       } else {
@@ -56,24 +66,24 @@ const createUser = (req, res, next) => {
         name,
         about,
         avatar,
-      })
+      }),
     )
     .then((user) => {
       res.status(200).send({ _id: user._id });
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
-        res.status(400).send({ message: "Your request resulted an error" });
+        res.status(400).send({ message: err.errors });
       } else {
         res.status(500).send({ message: "Internal Server Error" });
       }
     });
 };
 
-const login = (req, res, next) => {
+const login = (req, res) => {
   const { email, password } = req.body;
   //authentication successful! user is in the user variable
-  User.findUserByCredentails(email, password)
+  User.findByCredentails(email, password)
     .then((user) =>
       res.json({
         //creating the token
@@ -84,12 +94,15 @@ const login = (req, res, next) => {
           NODE_ENV === "production" ? JWT_SECRET : "dev-secret",
           {
             expiresIn: "7d",
-          }
+          },
         ),
-      })
+      }),
     )
-    .catch(next);
-}
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send({ message: "Internal Server Error" });
+    });
+};
 
 const updateUser = (req, res) => {
   User.findByIdAndUpdate(

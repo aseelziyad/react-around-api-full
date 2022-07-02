@@ -1,6 +1,9 @@
+/* eslint-disable function-call-argument-newline */
+/* eslint-disable function-paren-newline */
 const express = require("express");
 const { celebrate, Joi } = require("celebrate");
 const validator = require("validator");
+const auth = require("../middleware/auth");
 
 const router = express.Router();
 const {
@@ -18,24 +21,22 @@ const validateURL = (value, helpers) => {
   return helpers.error("string.uri");
 };
 
-router.get("/", getCards);
+router.get("/", auth, getCards);
 
 router.post(
-  "/",
-  celebrate({
+  "/", auth, celebrate({
     body: Joi.object().keys({
       name: Joi.string().required().min(2).max(30),
-      about: Joi.string().required().custom(validateURL),
+      link: Joi.string().required().custom(validateURL),
     }),
   }),
   createCard,
 );
 
 router.delete(
-  "/:cardId",
-  celebrate({
+  "/:cardId", celebrate({
     params: Joi.object().keys({
-      id: Joi.string().required(),
+      cardId: Joi.string().hex(),
     }),
   }),
   deleteCard,
@@ -45,7 +46,7 @@ router.put(
   "/:cardId/likes",
   celebrate({
     params: Joi.object().keys({
-      id: Joi.string().required(),
+      cardId: Joi.string().required(),
     }),
   }),
   likeCard,
@@ -55,7 +56,7 @@ router.delete(
   "/:cardId/likes",
   celebrate({
     params: Joi.object().keys({
-      id: Joi.string().required(),
+      cardId: Joi.string().required(),
     }),
   }),
   dislikeCard,

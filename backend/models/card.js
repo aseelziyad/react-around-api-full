@@ -1,4 +1,6 @@
+/* eslint-disable no-unused-vars */
 const mongoose = require("mongoose");
+const validator = require("validator");
 
 const cardSchema = new mongoose.Schema({
   name: {
@@ -9,14 +11,9 @@ const cardSchema = new mongoose.Schema({
   },
   link: {
     type: String,
-    // validate: {
-    //   validator(v) {
-    //     return /[(http(s)?)://(www.)?a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)/igm.test(v);
-    //   },
-    // },
     validate: {
       validator(v) {
-        return this.validate.isURL(V)
+        return validator.isURL(v);
       },
     },
     required: true,

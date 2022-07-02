@@ -148,24 +148,26 @@ export default function App() {
   }
 
   useEffect(() => {
+    loggedIn &&
     api
       .getUserInfo()
       .then((data) => setCurrentUser(data))
       .catch((err) => {
         console.log(err);
       });
-  }, []);
+  }, [loggedIn]);
 
   useEffect(() => {
-    api
-      .getInitialCards()
-      .then((data) => {
-        setCards((cards) => [...cards, ...data]);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }, []);
+    loggedIn &&
+      api
+        .getInitialCards()
+        .then((data) => {
+          setCards((cards) => [...cards, ...data]);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+  }, [loggedIn]);
 
   function handleCardLike(card) {
     const isLiked = card.likes.some((user) => user._id === currentUser._id);

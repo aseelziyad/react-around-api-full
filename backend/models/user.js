@@ -24,7 +24,6 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    unique: true,
     select: false,
     minlength: 6,
   },
@@ -43,26 +42,21 @@ const userSchema = new mongoose.Schema({
   },
   avatar: {
     type: String,
-    // validate: {
-    //   validator(v) {
-    //     return /[(http(s)?)://(www.)?a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)/gim.test(v);
-    //   },
-    // },
     validate: {
       validator(v) {
         return validator.isURL(v);
       },
     },
-    required: true,
+    required: false,
   },
 });
 
-// eslint-disable-next-line func-names
-userSchema.statics.findUserByCredentails = function (email, password) {
+userSchema.statics.findByCredentails = function (email, password) {
   //  find the user by email
   return this.findOne({ email })
-    .select("+pasword")
+    .select("+password")
     .then((user) => {
+      console.log(user);
       if (!user) {
         throw new UnauthorizedError();
       }
@@ -73,6 +67,10 @@ userSchema.statics.findUserByCredentails = function (email, password) {
         }
         return user;
       });
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new UnauthorizedError();
     });
 };
 

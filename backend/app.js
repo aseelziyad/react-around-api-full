@@ -1,3 +1,4 @@
+/* eslint-disable new-cap */
 // require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
@@ -8,7 +9,7 @@ const cardsRouter = require("./routes/cards");
 const { requestLogger, errorLogger } = require("./middleware/logger");
 const { login, createUser } = require("./controllers/users");
 const auth = require("./middleware/auth");
-const ErrorHandler = require("./errors/errorHandler");
+const errorHandler = require("./errors/errorHandler");
 const centralErrorHandler = require("./errors/centralErrorHandler");
 
 const { PORT = 3000 } = process.env;
@@ -19,23 +20,20 @@ mongoose.connect("mongodb://localhost:27017/aroundb");
 app.use(requestLogger);
 app.use(express.json());
 
-// include these before other routes
 app.use(cors());
 app.options("*", cors()); //  enable requests for all routes
 
-// app.use((req, res, next) => {
-//   req.user = {
-//     _id: "629363394c144120b4927f51",
-//   };
-
-//   next();
-// });
+app.get("/crash-test", () => {
+  setTimeout(() => {
+    throw new Error("Server will crash now");
+  }, 0);
+});
 
 app.post(
   "/signin",
   celebrate({
     body: Joi.object().keys({
-      name: Joi.string().required().min(2).max(30),
+      email: Joi.string().required().min(2).max(30),
       password: Joi.string().required().min(6),
     }),
   }),
@@ -45,32 +43,24 @@ app.post(
   "/signup",
   celebrate({
     body: Joi.object().keys({
-      name: Joi.string().required().min(2).max(30),
+      email: Joi.string().required().min(2).max(30),
       password: Joi.string().required().min(6),
+      name: Joi.string().min(2),
+      about: Joi.string().min(2),
+      avatar: Joi.string().min(2),
     }),
   }),
   createUser,
 );
 app.use(errors());
-app.use("/users", auth, usersRouter);
-app.use("/cards", auth, cardsRouter);
+app.use("/users", usersRouter);
+app.use("/cards", cardsRouter);
 app.get("*", () => {
-  throw new ErrorHandler();
+  throw new errorHandler();
 });
-app.use(errorLogger);
-// app.get("/", (req, res) => {
-//   res.status(404).send({ message: "The requested resource was not found" });
-// });
+
 app.use((err, req, res, next) => {
   centralErrorHandler(err, res);
-  // if (err.statusCode === undefined) {
-  //   const { statusCode = 500, message } = err;
-  //   res.status(statusCode).send({
-  //     message: statusCode === 500 ? "An error occured on the server" : message,
-  //   });
-  //   return;
-  // }
-  // res.status(err.statusCode).send({ message: err.message });
 });
 
 app.listen(PORT, () => {

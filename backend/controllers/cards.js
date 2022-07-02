@@ -1,5 +1,9 @@
+/* eslint-disable no-shadow */
+/* eslint-disable no-undef */
+/* eslint-disable semi */
 const Card = require("../models/card");
 const { ForbiddenError } = require("../errors/errorHandler");
+const { NotFoundError } = require("../errors/errorHandler");
 
 const getCards = (req, res) => {
   Card.find({})
@@ -13,33 +17,72 @@ const getCards = (req, res) => {
 
 const createCard = (req, res) => {
   const { name, link } = req.body;
+
   const owner = req.user._id;
+  console.log(owner);
   Card.create({ name, link, owner })
     .then((card) => {
-      res.status(200).send({ data: card });
+      res.status(200).send({ card });
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
         res.status(400).send({ message: "Your request resulted an error" });
       } else {
+        console.log(err);
         res.status(500).send({ message: "Internal Server Error" });
       }
     });
 };
 
-const deleteCard = (req, res, next) => {
-  const { id } = req.params;
-
-  Card.findById(id)
-  orFail()
+const deleteCard = (req, res) => {
+  Card.findOne({ _id: req.params.cardId })
     .then((card) => {
+      if (!card) {
+        throw new NotFoundError();
+      }
       if (!card.owner.equals(req.user._id)) {
         throw new ForbiddenError();
       }
-      return Card.findByIdAndDelete(id).orFail();
+      return Card.findOneAnDelete(req.params.cardId);
     })
-    .then((card) => res.send(card))
-    .catch(next);
+    .then((deleteCard) => {
+      res.send({ data: deleteCard });
+    })
+    .catch((err) => {
+      console.log(err);
+      if (err.name === "CastError") {
+        res.status(400).send({ message: "Your request  resulted an error" });
+      }
+      if (err.name === "DocumentNotFoundError") {
+        res.status(404).send({ message: "Card not found" });
+      } else {
+        console.log(err);
+        res.status(500).send({ message: "Internal Server Error" });
+      }
+    });
+
+  // Card.findById(cardId)
+  //   .orFail()
+  //   .then((card) => {
+  //     if (!card.owner.equals(req.user._id)) {
+  //       throw new ForbiddenError();
+  //     }
+  //     return Card.findByIdAndRemove(cardId).orFail();
+  //   })
+  //   .then((card) => {
+  //     res.send({ data: card });
+  //   })
+  //   .catch((err) => {
+  //     console.log(err);
+  //     if (err.name === "CastError") {
+  //       res.status(400).send({ message: "Your request  resulted an error" });
+  //     }
+  //     if (err.name === "DocumentNotFoundError") {
+  //       res.status(404).send({ message: "Card not found" });
+  //     } else {
+  //       res.status(500).send({ message: "Internal Server Error" });
+  //     }
+  //   });
   // Card.findByIdAndRemove(req.params.cardId)
   //   .orFail()
   //   .then((card) => {

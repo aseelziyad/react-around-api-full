@@ -1,6 +1,11 @@
+/* eslint-disable function-call-argument-newline */
+/* eslint-disable indent */
+/* eslint-disable function-paren-newline */
+/* eslint-disable no-unused-vars */
 const express = require("express");
 const { celebrate, Joi } = require("celebrate");
 const validator = require("validator");
+const auth = require("../middleware/auth");
 
 const router = express.Router();
 const {
@@ -19,29 +24,26 @@ const validateURL = (value, helpers) => {
   return helpers.error("string.uri");
 };
 
-router.get("/", getUsers);
-
-router.get("/:userId", getUserById);
-
-router.get("/me", getCurrentUser);
+router.get("/", auth, getUsers);
+router.get("/me", auth, getCurrentUser);
+router.get("/:userId", auth, getUserById);
 // router.post("/", createUser); no longer needed
-router.patch("/me",
+router.patch("/me", auth,
   celebrate({
     body: Joi.object().keys({
       name: Joi.string().required().min(2).max(30),
       about: Joi.string().required().min(2).max(30),
   }),
 }),
-  updateUser
+  updateUser,
 );
 router.patch(
-  "/me/avatar",
-  celebrate({
+  "/me/avatar", auth, celebrate({
     body: Joi.object().keys({
       avatar: Joi.string().required().custom(validateURL),
     }),
   }),
-  updateAvatar
+  updateAvatar,
 );
 
 module.exports = router;
