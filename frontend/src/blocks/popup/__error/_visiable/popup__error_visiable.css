@@ -1,0 +1,4 @@
+.popup__error_visiable {
+    visibility: visible;
+    display: flex;
+}

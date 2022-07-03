@@ -1,0 +1,5 @@
+.popup_active {
+  visibility: inherit;
+  opacity: 1;
+  pointer-events: all;
+}
