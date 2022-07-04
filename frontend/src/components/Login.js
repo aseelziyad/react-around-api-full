@@ -43,7 +43,7 @@ const Login = (props) => {
         </button>
       </form>
       <Link to="/signup" className="sign__link">
-        Not a member yet? Sign up here! pew pew
+        Not a member yet? Sign up here!
       </Link>
     </div>
   );

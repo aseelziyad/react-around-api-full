@@ -42,7 +42,7 @@ export default function Main(props) {
         ></button>
       </section>
       <section className="photographs">
-        {props.cards.map((card) => (
+        {props.cards.length > 0 && props.cards.map((card) => (
           <Card
             key={card._id}
             card={card}

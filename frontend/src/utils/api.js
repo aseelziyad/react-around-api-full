@@ -3,8 +3,10 @@ import React from "react";
 class Api extends React.Component {
   constructor(props) {
     super(props);
+    const headers = props.headers;
+    headers.Authorization = `Bearer ${localStorage.getItem("jwt")}`;
     this._baseUrl = props.baseUrl;
-    this._headers = props.headers;
+    this._headers = headers;
   }
 
   getInitialCards() {
@@ -45,18 +47,26 @@ class Api extends React.Component {
     }).then(this._getResponseData);
   }
 
-  changeLikeCardStatus(id, isLiked) {
-    if (isLiked) {
-      return fetch(`${this._baseUrl}/cards/likes/${id}`, {
-        headers: this._headers,
-        method: "PUT",
-      }).then(this._getResponseData);
+  changeLikeCardStatus(cardId, isLiked) {
+    if (!isLiked) {
+      return this.addLike(cardId)
     } else {
-      return fetch(`${this._baseUrl}/cards/likes/${id}`, {
+      return this.removeLike(cardId)
+    }
+  }
+
+  addLike(cardId) {
+    return fetch(`${this._baseUrl}/cards/${cardId}/likes`, {
+      headers: this._headers,
+      method: "PUT",
+    }).then(this._getResponseData);
+  }
+
+  removeLike(cardId) {
+      return fetch(`${this._baseUrl}/cards/${cardId}/likes`, {
         headers: this._headers,
         method: "DELETE",
       }).then(this._getResponseData);
-    }
   }
 
   setUserAvatar(imageLink) {

@@ -1,5 +1,4 @@
-
-export const BASE_URL = "http://api.aseelziyad.students.nomoreparties.sbs";
+export const BASE_URL = "https://api.aseelziyad.students.nomoreparties.sbs";
 
 const getRespose = (res) => {
   if (res.ok) {
@@ -13,22 +12,18 @@ export const register = (user) => {
   return fetch(`${BASE_URL}/signup`, {
     method: "POST",
     headers: {
-      "mode": "cors",
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
+      // "Access-Control-Allow-Origin": "*",
     },
     body: JSON.stringify({ email: user.email, password: user.password }),
   }).then(getRespose);
 };
 
 export const authorize = (user) => {
-  console.log(BASE_URL);
   return fetch(`${BASE_URL}/signin`, {
     method: "POST",
-    mode: "cors",
     headers: {
       "Content-Type": "application/json",
-      // "Access-Control-Allow-Origin": "*",
     },
     body: JSON.stringify({ email: user.email, password: user.password }),
   })

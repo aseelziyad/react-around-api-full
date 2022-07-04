@@ -6,7 +6,6 @@ const { UnauthorizedError } = require("../errors/errorHandler");
 const { NODE_ENV, JWT_SECRET } = process.env;
 
 const getCurrentUser = (req, res) => {
-  console.log("here");
   User.findById(req.user._id)
     .then((user) => {
       console.log(user);

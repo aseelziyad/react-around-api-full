@@ -3,15 +3,6 @@ import { CurrentUserState } from "../contexts/CurrentUserContext";
 
 export default function Card({ card, onCardClick, onDeleteClick, onCardLike }) {
   const currentUser = React.useContext(CurrentUserState);
-  const isOwn = card.owner._id === currentUser._id;
-  const cardDeleteButtonClassName = `photograph__delete-button ${
-    isOwn ? "" : "photograph__delete-button_hidden"
-  }`;
-
-  const isLiked = card.likes.some((user) => user._id === currentUser._id);
-  const cardLikeButtonClassName = `photograph__like-button ${
-    isLiked ? "photograph__like-button_active" : ""
-  }`;
 
   function handleImageClick() {
     onCardClick(card);
@@ -24,6 +15,18 @@ export default function Card({ card, onCardClick, onDeleteClick, onCardLike }) {
   function handleLikeClick() {
     onCardLike(card);
   }
+  const isOwn = card.owner === currentUser._id;
+  
+    const cardDeleteButtonClassName = `photograph__delete-button ${
+      isOwn ? "" : "photograph__delete-button_hidden"
+    }`;
+
+  const isLiked = card.likes.some((user_id) => user_id === currentUser._id);
+  
+    const cardLikeButtonClassName = `photograph__like-button ${
+      isLiked ? "photograph__like-button_active" : "photograph__like-button"
+    }`;
+  
   return (
     <div className="photograph">
       <button

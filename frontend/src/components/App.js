@@ -36,52 +36,52 @@ export default function App() {
   const [isInfoToolTipOpen, setIsInfoToolTipOpen] = React.useState(false);
   const navigate = useNavigate();
 
-    function handleLogin({ email, password }) {
-      authorize({ email, password })
+  function handleLogin({ email, password }) {
+    authorize({ email, password })
+      .then((user) => {
+        if (user) {
+          localStorage.setItem("jwt", user.token);
+          setLoggedIn(true);
+          setValues(email);
+          navigate("/");
+        } else {
+          setIsInfoToolTipOpen(true);
+          throw new Error("No token recieved");
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+  function handleRegister({ email, password }) {
+    register({ email, password })
+      .then((user) => {
+        navigate("./signin");
+        setIsRegistered(true);
+        setIsInfoToolTipOpen(true);
+      })
+      .catch((err) => {
+        setIsRegistered(false);
+      })
+      .finally(() => {
+        setIsInfoToolTipOpen(true);
+      });
+  }
+
+  useEffect(() => {
+    const token = localStorage.getItem("jwt");
+    token &&
+      checkToken(token)
         .then((user) => {
-          if (user) {
-            localStorage.setItem("jwt", user.token);
-            setLoggedIn(true);
-            setValues(email);
-            navigate("/");
-          } else {
-            setIsInfoToolTipOpen(true);
-            throw new Error("No token recieved");
-          }
+          setValues(user.email);
+          setLoggedIn(true);
+          navigate("/");
         })
         .catch((err) => {
           console.log(err);
         });
-    }
-
-    function handleRegister({ email, password }) {
-      register({ email, password })
-        .then((user) => {
-          navigate("./signin");
-          setIsRegistered(true);
-          setIsInfoToolTipOpen(true);
-        })
-        .catch((err) => {
-          setIsRegistered(false);
-        })
-        .finally(() => {
-         setIsInfoToolTipOpen(true);
-      })
-    }
-
-    useEffect(() => {
-      const token = localStorage.getItem("jwt");
-      token &&
-        checkToken(token)
-          .then((res) => {
-            setValues(res.data.email);
-            setLoggedIn(true);
-            navigate("/");
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-    }, []);
+  }, []);
 
   function handleEditProfileClick() {
     setEditProfileButton("Save");
@@ -112,8 +112,9 @@ export default function App() {
     setEditProfileButton("Saving...");
     api
       .setUserInfo(data)
-      .then((data) => {
-        setCurrentUser(data);
+      .then((res) => {
+        const userInfo = res.data || {}
+        setCurrentUser(userInfo);
         closeAllPopups();
       })
       .catch((err) => {
@@ -125,8 +126,9 @@ export default function App() {
     setEditAvatarButton("Saving...");
     api
       .setUserAvatar(avatar)
-      .then((data) => {
-        setCurrentUser(data);
+      .then((res) => {
+        const avatarInfo = res.data || {}
+        setCurrentUser(avatarInfo);
         closeAllPopups();
       })
       .catch((err) => {
@@ -134,12 +136,15 @@ export default function App() {
       });
   }
 
-  function handleAddPlaceSubmit(data) {
+  function handleAddPlaceSubmit(card) {
     setAddPlaceButton("Saving...");
     api
-      .createCard(data)
-      .then((newCard) => {
-        setCards([newCard, ...cards]);
+      .createCard(card)
+      .then((res) => {
+        const card = res.data;
+        if (card) {
+          setCards([card, ...cards]);
+        }
         closeAllPopups();
       })
       .catch((err) => {
@@ -149,20 +154,21 @@ export default function App() {
 
   useEffect(() => {
     loggedIn &&
-    api
-      .getUserInfo()
-      .then((data) => setCurrentUser(data))
-      .catch((err) => {
-        console.log(err);
-      });
+      api
+        .getUserInfo()
+        .then((data) => setCurrentUser(data))
+        .catch((err) => {
+          console.log(err);
+        });
   }, [loggedIn]);
 
   useEffect(() => {
     loggedIn &&
       api
         .getInitialCards()
-        .then((data) => {
-          setCards((cards) => [...cards, ...data]);
+        .then((res) => {
+          const cards = res.data || [];
+          setCards(cards);
         })
         .catch((err) => {
           console.log(err);
@@ -170,13 +176,14 @@ export default function App() {
   }, [loggedIn]);
 
   function handleCardLike(card) {
-    const isLiked = card.likes.some((user) => user._id === currentUser._id);
+    const isLiked = card.likes.some((user_id) => user_id === currentUser._id);
     api
-      .changeLikeCardStatus(card._id, !isLiked)
-      .then((newCard) => {
+      .changeLikeCardStatus(card._id, isLiked)
+      .then((res) => {
+        const updatedCard = res.data;
         setCards((state) =>
           state.map((currentCard) =>
-            currentCard._id === card._id ? newCard : currentCard
+            currentCard._id === card._id ? updatedCard : currentCard
           )
         );
       })
@@ -201,10 +208,10 @@ export default function App() {
   function handleLogOut(event) {
     localStorage.removeItem("jwt");
     setLoggedIn(false);
-    setValues("")
-    navigate("/signin")
+    setValues("");
+    navigate("/signin");
   }
-  
+
   function closeAllPopups() {
     setIsEditProfilePopupOpen(false);
     setIsEditAvatarPopupOpen(false);

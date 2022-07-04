@@ -43,7 +43,7 @@ const Register = (props) => {
           </button>
         </form>
         <Link to="/signin" className="sign__link">
-          Already a member? Sign in here! pew pew
+          Already a member? Sign in here!
         </Link>
       </div>
     );
