@@ -26,7 +26,17 @@ const validateURL = (value, helpers) => {
 
 router.get("/", auth, getUsers);
 router.get("/me", auth, getCurrentUser);
-router.get("/:userId", auth, getUserById);
+router.get(
+  "/:userId",
+  auth,
+  celebrate({
+    params: Joi.object().keys({
+      id: Joi.string().hex(),
+    }),
+  }),
+  getUserById,
+);
+
 router.patch("/me", auth,
   celebrate({
     body: Joi.object().keys({

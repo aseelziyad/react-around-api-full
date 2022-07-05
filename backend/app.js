@@ -64,9 +64,6 @@ app.post(
   createUser,
 );
 app.use(errorLogger);
-app.get("*", (req, res) => {
-  res.status(404).send({ message: "Requested resource not found" });
-});
 app.use((err, req, res, next) => {
   centralErrorHandler(err, res);
 });

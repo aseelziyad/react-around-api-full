@@ -2,35 +2,30 @@ const Card = require("../models/card");
 const { ForbiddenError } = require("../errors/errorHandler");
 const { NotFoundError } = require("../errors/errorHandler");
 
-const getCards = (req, res) => {
+const getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => {
-      res.status(200).send({ data: cards });
+      res.send({ data: cards });
     })
-    .catch(() => {
-      res.status(500).send({ message: "Internal Server Error" });
+    .catch((err) => {
+      next(err);
     });
 };
 
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
 
   const owner = req.user._id;
   Card.create({ name, link, owner })
     .then((card) => {
-      res.status(200).send({ data: card });
+      res.send({ data: card });
     })
     .catch((err) => {
-      if (err.statusCode === 400) {
-        res.status(400).send({ message: "Your request resulted an error" });
-      } else {
-        console.log(err);
-        res.status(500).send({ message: "Internal Server Error" });
-      }
+      next(err);
     });
 };
 
-const deleteCard = (req, res) => {
+const deleteCard = (req, res, next) => {
   Card.findOne({ _id: req.params.cardId })
     .then((card) => {
       if (!card) {
@@ -45,20 +40,11 @@ const deleteCard = (req, res) => {
       res.send({ data: deleteCard });
     })
     .catch((err) => {
-      if (err.statusCode === 400) {
-        res.send({ message: "Your request  resulted an error" });
-      } else if (err.statusCode === 404) {
-        res.send({ message: "Card not found" });
-      } else if (err.statusCode === 403) {
-        res.send({ message: "Unauthriozed Error" });
-      } else {
-        console.log(err);
-        res.status(500).send({ message: "Internal Server Error" });
-      }
+      next(err);
     });
 };
 
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -66,23 +52,17 @@ const likeCard = (req, res) => {
   )
     .orFail()
     .then((card) => {
-      res.status(200).send({ data: card });
+      if (!card) {
+        throw new NotFoundError();
+      }
+      res.send({ data: card });
     })
     .catch((err) => {
-      if (err.statusCode === 400) {
-        res.send({ message: "Your request  resulted an error" });
-      } else if (err.statusCode === 404) {
-        res.send({ message: "Card not found" });
-      } else if (err.statusCode === 403) {
-        res.send({ message: "Unauthriozed Error" });
-      } else {
-        console.log(err);
-        res.status(500).send({ message: "Internal Server Error" });
-      }
+      next(err);
     });
 };
 
-const dislikeCard = (req, res) => {
+const dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // remove _id from the array
@@ -90,19 +70,13 @@ const dislikeCard = (req, res) => {
   )
     .orFail()
     .then((card) => {
-      res.status(200).send({ data: card });
+      if (!card) {
+        throw new NotFoundError();
+      }
+      res.send({ data: card });
     })
     .catch((err) => {
-      if (err.statusCode === 400) {
-        res.send({ message: "Your request  resulted an error" });
-      } else if (err.statusCode === 404) {
-        res.send({ message: "Card not found" });
-      } else if (err.statusCode === 403) {
-        res.send({ message: "Unauthriozed Error" });
-      } else {
-        console.log(err);
-        res.status(500).send({ message: "Internal Server Error" });
-      }
+      next(err);
     });
 };
 

@@ -1,49 +1,44 @@
+/* eslint-disable implicit-arrow-linebreak */
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
-const { UnauthorizedError } = require("../errors/errorHandler");
+const { UnauthorizedError, NotFoundError } = require("../errors/errorHandler");
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
-const getCurrentUser = (req, res) => {
+const getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .then((user) => {
       console.log(user);
       if (!user) {
-        throw new UnauthorizedError();
+        throw new NotFoundError();
       }
       res.send(user);
     })
-    .catch(() => {
-      res.status(500).send({ message: "Internal Server Error" });
+    .catch((err) => {
+      next(err);
     });
 };
 
-const getUsers = (req, res) => {
+const getUsers = (req, res, next) => {
   User.find({})
     .then((users) => {
-      res.status(200).send({ data: users });
+      res.send({ data: users });
     })
-    .catch(() => {
-      res.status(500).send({ message: "Internal Server Error" });
+    .catch((err) => {
+      next(err);
     });
 };
 
-const getUserById = (req, res) => {
+const getUserById = (req, res, next) => {
   console.log(req.params);
   User.findById(req.params.userId)
     .orFail()
     .then((userId) => {
-      res.status(200).send({ data: userId });
+      res.send({ data: userId });
     })
     .catch((err) => {
-      if (err.statusCode === 400) {
-        res.send({ message: "Your request  resulted an error" });
-      } else if (err.name === 404) {
-        res.send({ message: "User not found" });
-      } else {
-        res.status(500).send({ message: "Internal Server Error" });
-      }
+      next(err);
     });
 };
 
@@ -54,48 +49,45 @@ const createUser = (req, res, next) => {
 
   bcrypt
     .hash(password, 10)
-    .then((hash) => User.create({
-      email,
-      password: hash, // adding the hash to the database
-      name,
-      about,
-      avatar,
-    }))
+    .then((hash) =>
+      User.create({
+        email,
+        password: hash, // adding the hash to the database
+        name,
+        about,
+        avatar,
+      }))
     .then((user) => {
-      res.status(200).send({ _id: user._id });
+      res.send({ _id: user._id });
     })
     .catch((err) => {
-      if (err.statusCode === 400) {
-        res.send({ message: "Your request  resulted an error" });
-      } else {
-        res.status(500).send({ message: "Internal Server Error" });
-      }
+      next(err);
     });
 };
 
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
   // authentication successful! user is in the user variable
   User.findByCredentails(email, password)
-    .then((user) => res.json({
-      // creating the token
-      token: jwt.sign(
-        {
-          _id: user._id,
-        },
-        NODE_ENV === "production" ? JWT_SECRET : "dev-secret",
-        {
-          expiresIn: "7d",
-        },
-      ),
-    }))
+    .then((user) =>
+      res.json({
+        // creating the token
+        token: jwt.sign(
+          {
+            _id: user._id,
+          },
+          NODE_ENV === "production" ? JWT_SECRET : "dev-secret",
+          {
+            expiresIn: "7d",
+          },
+        ),
+      }))
     .catch((err) => {
-      console.log(err);
-      res.status(500).send({ message: "Internal Server Error" });
+      next(err);
     });
 };
 
-const updateUser = (req, res) => {
+const updateUser = (req, res, next) => {
   User.findByIdAndUpdate(
     req.user._id,
     {
@@ -106,21 +98,17 @@ const updateUser = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        res.status(404).send({ message: "User not found" });
+        throw new NotFoundError();
       } else {
-        res.status(200).send({ data: user });
+        res.send({ data: user });
       }
     })
     .catch((err) => {
-      if (err.name === "CastError") {
-        res.status(400).send({ message: "Your request  resulted an error" });
-      } else {
-        res.status(500).send({ message: "Internal Server Error" });
-      }
+      next(err);
     });
 };
 
-const updateAvatar = (req, res) => {
+const updateAvatar = (req, res, next) => {
   User.findByIdAndUpdate(
     req.user._id,
     {
@@ -130,17 +118,13 @@ const updateAvatar = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        res.status(404).send({ message: "User not found" });
+        throw new NotFoundError();
       } else {
-        res.status(200).send({ data: user });
+        res.send({ data: user });
       }
     })
     .catch((err) => {
-      if (err.statusCode === 400) {
-        res.send({ message: "Your request  resulted an error" });
-      } else {
-        res.status(500).send({ message: "Internal Server Error" });
-      }
+      next(err);
     });
 };
 
